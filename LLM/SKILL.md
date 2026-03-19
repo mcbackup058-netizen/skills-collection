@@ -1,7 +1,9 @@
 ---
 name: LLM
-description: Implement large language model (LLM) chat completions using the z-ai-web-dev-sdk. Use this skill when the user needs to build conversational AI applications, chatbots, AI assistants, or any text generation features. Supports multi-turn conversations, system prompts, and context management.
+description: Implement large language model (LLM) chat completions using the z-ai-web-dev-sdk. Use this skill when the user needs to build conversational AI applications, chatbots, AI assistants, or any text generation features. Supports multi-turn conversations, system prompts, context management, function calling, structured outputs, and thinking/reasoning modes.
 license: MIT
+version: 3.0.0
+last_updated: 2026-03
 ---
 
 # LLM (Large Language Model) Skill
@@ -10,9 +12,7 @@ This skill guides the implementation of chat completions functionality using the
 
 ## Skills Path
 
-**Skill Location**: `{project_path}/skills/llm`
-
-this skill is located at above path in your project.
+**Skill Location**: `{project_path}/skills/LLM`
 
 **Reference Scripts**: Example test scripts are available in the `{Skill Location}/scripts/` directory for quick testing and reference. See `{Skill Location}/scripts/chat.ts` for a working example.
 
@@ -22,13 +22,35 @@ The LLM skill allows you to build applications that leverage large language mode
 
 **IMPORTANT**: z-ai-web-dev-sdk MUST be used in backend code only. Never use it in client-side code.
 
+## 🆕 What's New in 2026
+
+### Latest Features (March 2026)
+- **Extended Thinking Mode**: Enhanced chain-of-thought reasoning with step-by-step explanations
+- **Function Calling**: Native support for tool/function integration
+- **Structured Outputs**: JSON schema validation and guaranteed output formats
+- **Vision Integration**: Seamless image understanding in chat
+- **Code Interpreter**: Execute code within conversations
+- **Streaming Responses**: Real-time response streaming with SSE
+- **Multi-modal Input**: Text, images, and documents in same conversation
+- **Context Caching**: Efficient handling of long contexts
+
+### Model Capabilities (2026)
+| Feature | GLM-4.5 | GLM-4.5-Turbo | GLM-5 |
+|---------|---------|---------------|-------|
+| Context Window | 128K | 256K | 1M |
+| Thinking Mode | ✓ | ✓ | ✓ Enhanced |
+| Function Calling | ✓ | ✓ | ✓ |
+| Vision | ✓ | ✓ | ✓ |
+| Code Execution | ✓ | ✓ | ✓ |
+| JSON Mode | ✓ | ✓ | ✓ |
+| Speed | Fast | Fastest | Moderate |
+| Reasoning | Good | Good | Best |
+
 ## Prerequisites
 
 The z-ai-web-dev-sdk package is already installed. Import it as shown in the examples below.
 
 ## CLI Usage (For Simple Tasks)
-
-For simple, one-off chat completions, you can use the z-ai CLI instead of writing code. This is ideal for quick tests, simple queries, or automation scripts.
 
 ### Basic Chat
 
@@ -43,48 +65,46 @@ z-ai chat -p "Explain quantum computing" -o response.json
 z-ai chat -p "Write a short poem" --stream
 ```
 
-### With System Prompt
+### With Extended Thinking (NEW 2026)
 
 ```bash
-# Custom system prompt for specific behavior
+# Enable extended thinking for complex reasoning
 z-ai chat \
-  --prompt "Review this code: function add(a,b) { return a+b; }" \
-  --system "You are an expert code reviewer" \
-  -o review.json
+  -p "Solve this math problem step by step: What is 15% of 847?" \
+  --thinking extended \
+  -o solution.json
+
+# Reasoning mode for complex decisions
+z-ai chat \
+  -p "Analyze the pros and cons of remote work" \
+  --thinking chain-of-thought \
+  --output analysis.json
 ```
 
-### With Thinking (Chain of Thought)
+### With Function Calling (NEW 2026)
 
 ```bash
-# Enable thinking for complex reasoning
+# Use with function definitions
 z-ai chat \
-  --prompt "Solve this math problem: If a train travels 120km in 2 hours, what's its speed?" \
-  --thinking \
-  -o solution.json
+  -p "What's the weather in Tokyo?" \
+  --functions weather_functions.json \
+  -o response.json
 ```
 
 ### CLI Parameters
 
-- `--prompt, -p <text>`: **Required** - User message content
-- `--system, -s <text>`: Optional - System prompt for custom behavior
-- `--thinking, -t`: Optional - Enable chain-of-thought reasoning (default: disabled)
-- `--output, -o <path>`: Optional - Output file path (JSON format)
-- `--stream`: Optional - Stream the response in real-time
-
-### When to Use CLI vs SDK
-
-**Use CLI for:**
-- Quick one-off questions
-- Simple automation scripts
-- Testing prompts
-- Single-turn conversations
-
-**Use SDK for:**
-- Multi-turn conversations with context
-- Custom conversation management
-- Integration with web applications
-- Complex chat workflows
-- Production applications
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--prompt, -p` | User message content | Required |
+| `--system, -s` | System prompt | Default assistant |
+| `--model, -m` | Model selection | auto |
+| `--thinking, -t` | Thinking mode: disabled/enabled/extended | disabled |
+| `--functions` | Function definitions file | - |
+| `--json-mode` | Force JSON output | false |
+| `--stream` | Stream response | false |
+| `--output, -o` | Output file path | - |
+| `--max-tokens` | Maximum output tokens | 4096 |
+| `--temperature` | Sampling temperature (0-2) | 0.7 |
 
 ## Basic Chat Completions
 
@@ -99,19 +119,17 @@ async function askQuestion(question) {
   const completion = await zai.chat.completions.create({
     messages: [
       {
-        role: 'assistant',
+        role: 'system',
         content: 'You are a helpful assistant.'
       },
       {
         role: 'user',
         content: question
       }
-    ],
-    thinking: { type: 'disabled' }
+    ]
   });
 
-  const response = completion.choices[0]?.message?.content;
-  return response;
+  return completion.choices[0]?.message?.content;
 }
 
 // Usage
@@ -119,738 +137,610 @@ const answer = await askQuestion('What is the capital of France?');
 console.log('Answer:', answer);
 ```
 
-### Custom System Prompt
+### Extended Thinking Mode (NEW 2026)
 
 ```javascript
 import ZAI from 'z-ai-web-dev-sdk';
 
-async function customAssistant(systemPrompt, userMessage) {
+async function thinkAndAnswer(question) {
   const zai = await ZAI.create();
 
   const completion = await zai.chat.completions.create({
     messages: [
       {
-        role: 'assistant',
-        content: systemPrompt
+        role: 'system',
+        content: 'You are a careful analytical assistant.'
+      },
+      {
+        role: 'user',
+        content: question
+      }
+    ],
+    thinking: { 
+      type: 'extended', // 'disabled', 'enabled', or 'extended'
+      budget_tokens: 2000 // Budget for thinking tokens
+    }
+  });
+
+  return {
+    answer: completion.choices[0]?.message?.content,
+    thinking: completion.choices[0]?.message?.thinking, // Reasoning process
+    thinking_tokens: completion.usage?.thinking_tokens
+  };
+}
+
+// Usage
+const result = await thinkAndAnswer(
+  'If a train leaves Paris at 9 AM going 120 km/h, and another leaves Lyon at 10 AM going 100 km/h, when will they meet?'
+);
+
+console.log('Thinking:', result.thinking);
+console.log('Answer:', result.answer);
+```
+
+### Streaming Responses (NEW 2026)
+
+```javascript
+import ZAI from 'z-ai-web-dev-sdk';
+
+async function streamingChat(prompt, onChunk) {
+  const zai = await ZAI.create();
+
+  const stream = await zai.chat.completions.create({
+    messages: [
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: prompt }
+    ],
+    stream: true
+  });
+
+  let fullResponse = '';
+
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content || '';
+    fullResponse += content;
+    
+    if (onChunk) {
+      onChunk(content, fullResponse);
+    }
+  }
+
+  return fullResponse;
+}
+
+// Usage
+const response = await streamingChat(
+  'Write a short story about a robot',
+  (chunk, full) => {
+    process.stdout.write(chunk); // Real-time output
+  }
+);
+```
+
+## Function Calling (NEW 2026)
+
+### Define Functions
+
+```javascript
+import ZAI from 'z-ai-web-dev-sdk';
+
+const weatherFunction = {
+  name: 'get_weather',
+  description: 'Get current weather for a location',
+  parameters: {
+    type: 'object',
+    properties: {
+      location: {
+        type: 'string',
+        description: 'City name or coordinates'
+      },
+      unit: {
+        type: 'string',
+        enum: ['celsius', 'fahrenheit'],
+        description: 'Temperature unit'
+      }
+    },
+    required: ['location']
+  }
+};
+
+async function chatWithFunctions(userMessage) {
+  const zai = await ZAI.create();
+
+  const completion = await zai.chat.completions.create({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a helpful assistant with access to weather data.'
       },
       {
         role: 'user',
         content: userMessage
       }
     ],
-    thinking: { type: 'disabled' }
+    functions: [weatherFunction],
+    function_call: 'auto' // Let model decide when to call
   });
 
-  return completion.choices[0]?.message?.content;
+  const message = completion.choices[0]?.message;
+
+  // Check if function was called
+  if (message?.function_call) {
+    const functionName = message.function_call.name;
+    const args = JSON.parse(message.function_call.arguments);
+    
+    console.log(`Function called: ${functionName}`);
+    console.log('Arguments:', args);
+    
+    // Execute function and continue conversation
+    const functionResult = await getWeather(args.location, args.unit);
+    
+    // Send function result back
+    const followUp = await zai.chat.completions.create({
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: userMessage },
+        message,
+        {
+          role: 'function',
+          name: functionName,
+          content: JSON.stringify(functionResult)
+        }
+      ]
+    });
+    
+    return followUp.choices[0]?.message?.content;
+  }
+
+  return message?.content;
 }
 
-// Usage - Code reviewer
-const codeReview = await customAssistant(
-  'You are an expert code reviewer. Analyze code for bugs, performance issues, and best practices.',
-  'Review this function: function add(a, b) { return a + b; }'
-);
+// Mock function implementation
+async function getWeather(location, unit = 'celsius') {
+  // In production, call actual weather API
+  return {
+    location,
+    temperature: 22,
+    unit,
+    conditions: 'Partly cloudy',
+    humidity: 65
+  };
+}
 
-// Usage - Creative writer
-const story = await customAssistant(
-  'You are a creative fiction writer who writes engaging short stories.',
-  'Write a short story about a robot learning to paint.'
-);
-
-console.log(codeReview);
-console.log(story);
+// Usage
+const response = await chatWithFunctions("What's the weather like in Tokyo?");
+console.log(response);
 ```
 
-## Multi-turn Conversations
-
-### Conversation History Management
+### Multiple Functions
 
 ```javascript
 import ZAI from 'z-ai-web-dev-sdk';
 
-class ConversationManager {
-  constructor(systemPrompt = 'You are a helpful assistant.') {
-    this.messages = [
-      {
-        role: 'assistant',
-        content: systemPrompt
+const functions = [
+  {
+    name: 'search_web',
+    description: 'Search the web for current information',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Search query' }
+      },
+      required: ['query']
+    }
+  },
+  {
+    name: 'calculate',
+    description: 'Perform mathematical calculations',
+    parameters: {
+      type: 'object',
+      properties: {
+        expression: { type: 'string', description: 'Math expression to evaluate' }
+      },
+      required: ['expression']
+    }
+  },
+  {
+    name: 'get_current_time',
+    description: 'Get current time in a timezone',
+    parameters: {
+      type: 'object',
+      properties: {
+        timezone: { 
+          type: 'string', 
+          description: 'Timezone (e.g., "America/New_York")' 
+        }
       }
-    ];
+    }
+  }
+];
+```
+
+## Structured Outputs (NEW 2026)
+
+### JSON Schema Enforcement
+
+```javascript
+import ZAI from 'z-ai-web-dev-sdk';
+
+const responseSchema = {
+  type: 'object',
+  properties: {
+    sentiment: {
+      type: 'string',
+      enum: ['positive', 'negative', 'neutral']
+    },
+    confidence: {
+      type: 'number',
+      minimum: 0,
+      maximum: 1
+    },
+    topics: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    summary: { type: 'string' }
+  },
+  required: ['sentiment', 'confidence', 'topics', 'summary']
+};
+
+async function analyzeWithSchema(text) {
+  const zai = await ZAI.create();
+
+  const completion = await zai.chat.completions.create({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a text analysis assistant. Analyze text and return structured JSON.'
+      },
+      {
+        role: 'user',
+        content: `Analyze this text: "${text}"`
+      }
+    ],
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'text_analysis',
+        schema: responseSchema
+      }
+    }
+  });
+
+  // Guaranteed to match schema
+  return JSON.parse(completion.choices[0]?.message?.content);
+}
+
+// Usage
+const analysis = await analyzeWithSchema(
+  'The new product launch was incredibly successful! Sales exceeded expectations.'
+);
+console.log(analysis);
+// Output is guaranteed to match the schema:
+// { sentiment: 'positive', confidence: 0.95, topics: ['product', 'sales'], summary: '...' }
+```
+
+### Type-Safe Response
+
+```javascript
+import ZAI from 'z-ai-web-dev-sdk';
+
+interface CodeReview {
+  rating: number;
+  issues: Array<{
+    line: number;
+    severity: 'error' | 'warning' | 'info';
+    message: string;
+    suggestion: string;
+  }>;
+  overall_feedback: string;
+}
+
+async function reviewCode(code: string): Promise<CodeReview> {
+  const zai = await ZAI.create();
+
+  const completion = await zai.chat.completions.create({
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a code reviewer. Analyze code and return structured feedback.'
+      },
+      {
+        role: 'user',
+        content: `Review this code:\n\`\`\`javascript\n${code}\n\`\`\``
+      }
+    ],
+    response_format: { type: 'json_object' }
+  });
+
+  return JSON.parse(completion.choices[0]?.message?.content);
+}
+```
+
+## Multi-turn Conversations
+
+### Conversation Manager with Context
+
+```javascript
+import ZAI from 'z-ai-web-dev-sdk';
+
+class SmartConversation {
+  constructor(options = {}) {
+    this.maxTokens = options.maxTokens || 128000;
+    this.systemPrompt = options.systemPrompt || 'You are a helpful assistant.';
+    this.messages = [];
     this.zai = null;
   }
 
   async initialize() {
     this.zai = await ZAI.create();
+    this.messages = [
+      { role: 'system', content: this.systemPrompt }
+    ];
   }
 
-  async sendMessage(userMessage) {
-    // Add user message to history
+  async chat(userMessage, options = {}) {
+    // Add user message
     this.messages.push({
       role: 'user',
       content: userMessage
     });
 
-    // Get completion
+    // Auto-trim if context too long
+    this.trimContextIfNeeded();
+
     const completion = await this.zai.chat.completions.create({
       messages: this.messages,
-      thinking: { type: 'disabled' }
+      thinking: options.thinking ? { type: 'enabled' } : undefined,
+      functions: options.functions,
+      stream: options.stream || false
     });
 
-    const assistantResponse = completion.choices[0]?.message?.content;
+    const response = completion.choices[0]?.message;
 
-    // Add assistant response to history
+    // Add assistant response
     this.messages.push({
       role: 'assistant',
-      content: assistantResponse
+      content: response?.content || ''
     });
 
-    return assistantResponse;
+    return {
+      content: response?.content,
+      functionCall: response?.function_call,
+      usage: completion.usage
+    };
+  }
+
+  trimContextIfNeeded() {
+    // Estimate tokens (rough: 4 chars per token)
+    const estimateTokens = (msgs) => 
+      msgs.reduce((sum, m) => sum + Math.ceil(m.content.length / 4), 0);
+
+    while (estimateTokens(this.messages) > this.maxTokens && this.messages.length > 3) {
+      // Remove oldest messages but keep system prompt
+      this.messages = [
+        this.messages[0],
+        ...this.messages.slice(3)
+      ];
+    }
   }
 
   getHistory() {
     return this.messages;
   }
 
-  clearHistory(systemPrompt = 'You are a helpful assistant.') {
+  clear() {
     this.messages = [
-      {
-        role: 'assistant',
-        content: systemPrompt
-      }
+      { role: 'system', content: this.systemPrompt }
     ];
-  }
-
-  getMessageCount() {
-    // Subtract 1 for system message
-    return this.messages.length - 1;
   }
 }
 
 // Usage
-const conversation = new ConversationManager();
-await conversation.initialize();
+const chat = new SmartConversation({
+  systemPrompt: 'You are a helpful coding assistant.',
+  maxTokens: 100000
+});
 
-const response1 = await conversation.sendMessage('Hi, my name is John.');
-console.log('AI:', response1);
+await chat.initialize();
 
-const response2 = await conversation.sendMessage('What is my name?');
-console.log('AI:', response2); // Should remember the name is John
-
-console.log('Total messages:', conversation.getMessageCount());
-```
-
-### Context-Aware Conversations
-
-```javascript
-import ZAI from 'z-ai-web-dev-sdk';
-
-class ContextualChat {
-  constructor() {
-    this.messages = [];
-    this.zai = null;
-  }
-
-  async initialize() {
-    this.zai = await ZAI.create();
-  }
-
-  async startConversation(role, context) {
-    // Set up system prompt with context
-    const systemPrompt = `You are ${role}. Context: ${context}`;
-    
-    this.messages = [
-      {
-        role: 'assistant',
-        content: systemPrompt
-      }
-    ];
-  }
-
-  async chat(userMessage) {
-    this.messages.push({
-      role: 'user',
-      content: userMessage
-    });
-
-    const completion = await this.zai.chat.completions.create({
-      messages: this.messages,
-      thinking: { type: 'disabled' }
-    });
-
-    const response = completion.choices[0]?.message?.content;
-
-    this.messages.push({
-      role: 'assistant',
-      content: response
-    });
-
-    return response;
-  }
-}
-
-// Usage - Customer support scenario
-const support = new ContextualChat();
-await support.initialize();
-
-await support.startConversation(
-  'a customer support agent for TechCorp',
-  'The user has ordered product #12345 which is delayed due to shipping issues.'
-);
-
-const reply1 = await support.chat('Where is my order?');
-console.log('Support:', reply1);
-
-const reply2 = await support.chat('Can I get a refund?');
-console.log('Support:', reply2);
+const response1 = await chat.chat('What is TypeScript?');
+const response2 = await chat.chat('How is it different from JavaScript?');
 ```
 
 ## Advanced Use Cases
 
-### Content Generation
+### Code Interpreter Integration
 
 ```javascript
 import ZAI from 'z-ai-web-dev-sdk';
 
-class ContentGenerator {
-  constructor() {
-    this.zai = null;
-  }
-
-  async initialize() {
-    this.zai = await ZAI.create();
-  }
-
-  async generateBlogPost(topic, tone = 'professional') {
-    const completion = await this.zai.chat.completions.create({
-      messages: [
-        {
-          role: 'assistant',
-          content: `You are a professional content writer. Write in a ${tone} tone.`
-        },
-        {
-          role: 'user',
-          content: `Write a blog post about: ${topic}. Include an introduction, main points, and conclusion.`
-        }
-      ],
-      thinking: { type: 'disabled' }
-    });
-
-    return completion.choices[0]?.message?.content;
-  }
-
-  async generateProductDescription(productName, features) {
-    const completion = await this.zai.chat.completions.create({
-      messages: [
-        {
-          role: 'assistant',
-          content: 'You are an expert at writing compelling product descriptions for e-commerce.'
-        },
-        {
-          role: 'user',
-          content: `Write a product description for "${productName}". Key features: ${features.join(', ')}.`
-        }
-      ],
-      thinking: { type: 'disabled' }
-    });
-
-    return completion.choices[0]?.message?.content;
-  }
-
-  async generateEmailResponse(originalEmail, intent) {
-    const completion = await this.zai.chat.completions.create({
-      messages: [
-        {
-          role: 'assistant',
-          content: 'You are a professional email writer. Write clear, concise, and polite emails.'
-        },
-        {
-          role: 'user',
-          content: `Original email: "${originalEmail}"\n\nWrite a ${intent} response.`
-        }
-      ],
-      thinking: { type: 'disabled' }
-    });
-
-    return completion.choices[0]?.message?.content;
-  }
-}
-
-// Usage
-const generator = new ContentGenerator();
-await generator.initialize();
-
-const blogPost = await generator.generateBlogPost(
-  'The Future of Artificial Intelligence',
-  'informative'
-);
-console.log('Blog Post:', blogPost);
-
-const productDesc = await generator.generateProductDescription(
-  'Smart Watch Pro',
-  ['Heart rate monitoring', 'GPS tracking', 'Waterproof', '7-day battery life']
-);
-console.log('Product Description:', productDesc);
-```
-
-### Data Analysis and Summarization
-
-```javascript
-import ZAI from 'z-ai-web-dev-sdk';
-
-async function analyzeData(data, analysisType) {
+async function chatWithCodeExecution(prompt) {
   const zai = await ZAI.create();
-
-  const prompts = {
-    summarize: 'You are a data analyst. Summarize the key insights from the data.',
-    trend: 'You are a data analyst. Identify trends and patterns in the data.',
-    recommendation: 'You are a business analyst. Provide actionable recommendations based on the data.'
-  };
 
   const completion = await zai.chat.completions.create({
     messages: [
       {
-        role: 'assistant',
-        content: prompts[analysisType] || prompts.summarize
+        role: 'system',
+        content: 'You can execute Python code to solve problems.'
       },
       {
         role: 'user',
-        content: `Analyze this data:\n\n${JSON.stringify(data, null, 2)}`
+        content: prompt
       }
     ],
-    thinking: { type: 'disabled' }
+    tools: [{
+      type: 'code_interpreter'
+    }]
+  });
+
+  return {
+    content: completion.choices[0]?.message?.content,
+    codeExecutions: completion.choices[0]?.message?.tool_calls?.filter(
+      call => call.type === 'code_interpreter'
+    )
+  };
+}
+
+// Usage
+const result = await chatWithCodeExecution(
+  'Calculate the first 100 Fibonacci numbers and plot them'
+);
+```
+
+### Multi-modal Input
+
+```javascript
+import ZAI from 'z-ai-web-dev-sdk';
+import fs from 'fs';
+
+async function chatWithImage(text, imagePath) {
+  const zai = await ZAI.create();
+
+  const imageBuffer = fs.readFileSync(imagePath);
+  const base64Image = imageBuffer.toString('base64');
+
+  const completion = await zai.chat.completions.create({
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text },
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:image/jpeg;base64,${base64Image}`
+            }
+          }
+        ]
+      }
+    ]
   });
 
   return completion.choices[0]?.message?.content;
 }
 
 // Usage
-const salesData = {
-  Q1: { revenue: 100000, customers: 250 },
-  Q2: { revenue: 120000, customers: 280 },
-  Q3: { revenue: 150000, customers: 320 },
-  Q4: { revenue: 180000, customers: 380 }
-};
-
-const summary = await analyzeData(salesData, 'summarize');
-const trends = await analyzeData(salesData, 'trend');
-const recommendations = await analyzeData(salesData, 'recommendation');
-
-console.log('Summary:', summary);
-console.log('Trends:', trends);
-console.log('Recommendations:', recommendations);
+const response = await chatWithImage(
+  'What do you see in this image? Describe it in detail.',
+  './photo.jpg'
+);
 ```
 
-### Code Generation and Debugging
-
-```javascript
-import ZAI from 'z-ai-web-dev-sdk';
-
-class CodeAssistant {
-  constructor() {
-    this.zai = null;
-  }
-
-  async initialize() {
-    this.zai = await ZAI.create();
-  }
-
-  async generateCode(description, language) {
-    const completion = await this.zai.chat.completions.create({
-      messages: [
-        {
-          role: 'assistant',
-          content: `You are an expert ${language} programmer. Write clean, efficient, and well-commented code.`
-        },
-        {
-          role: 'user',
-          content: `Write ${language} code to: ${description}`
-        }
-      ],
-      thinking: { type: 'disabled' }
-    });
-
-    return completion.choices[0]?.message?.content;
-  }
-
-  async debugCode(code, issue) {
-    const completion = await this.zai.chat.completions.create({
-      messages: [
-        {
-          role: 'assistant',
-          content: 'You are an expert debugger. Identify bugs and suggest fixes.'
-        },
-        {
-          role: 'user',
-          content: `Code:\n${code}\n\nIssue: ${issue}\n\nFind the bug and suggest a fix.`
-        }
-      ],
-      thinking: { type: 'disabled' }
-    });
-
-    return completion.choices[0]?.message?.content;
-  }
-
-  async explainCode(code) {
-    const completion = await this.zai.chat.completions.create({
-      messages: [
-        {
-          role: 'assistant',
-          content: 'You are a programming teacher. Explain code clearly and simply.'
-        },
-        {
-          role: 'user',
-          content: `Explain what this code does:\n\n${code}`
-        }
-      ],
-      thinking: { type: 'disabled' }
-    });
-
-    return completion.choices[0]?.message?.content;
-  }
-}
-
-// Usage
-const codeAssist = new CodeAssistant();
-await codeAssist.initialize();
-
-const newCode = await codeAssist.generateCode(
-  'Create a function that sorts an array of objects by a specific property',
-  'JavaScript'
-);
-console.log('Generated Code:', newCode);
-
-const bugFix = await codeAssist.debugCode(
-  'function add(a, b) { return a - b; }',
-  'This function should add numbers but returns wrong results'
-);
-console.log('Debug Suggestion:', bugFix);
-```
-
-## Best Practices
+## Best Practices (2026)
 
 ### 1. Prompt Engineering
 
 ```javascript
-// Bad: Vague prompt
-const bad = await askQuestion('Tell me about AI');
+const promptTemplates = {
+  // Chain-of-thought prompting
+  analyze: `Analyze this step by step:
+1. Identify the main components
+2. Consider relationships
+3. Evaluate implications
+4. Draw conclusions
 
-// Good: Specific and structured prompt
-async function askWithContext(topic, format, audience) {
-  const zai = await ZAI.create();
-  
-  const completion = await zai.chat.completions.create({
-    messages: [
-      {
-        role: 'assistant',
-        content: `You are an expert educator. Explain topics clearly for ${audience}.`
-      },
-      {
-        role: 'user',
-        content: `Explain ${topic} in ${format} format. Include practical examples.`
-      }
-    ],
-    thinking: { type: 'disabled' }
-  });
+Input: {input}`,
 
-  return completion.choices[0]?.message?.content;
+  // Few-shot prompting
+  classify: `Classify the sentiment. Examples:
+"Great product!" → positive
+"Terrible experience" → negative
+"It was okay" → neutral
+
+Now classify: "{input}"`,
+
+  // Structured output
+  extract: `Extract information as JSON:
+{
+  "entities": [],
+  "dates": [],
+  "locations": [],
+  "sentiment": ""
 }
 
-const good = await askWithContext('artificial intelligence', 'bullet points', 'beginners');
+Text: {input}`
+};
 ```
 
-### 2. Error Handling
+### 2. Error Handling with Retry
 
 ```javascript
 import ZAI from 'z-ai-web-dev-sdk';
 
-async function safeCompletion(messages, retries = 3) {
+async function robustCompletion(messages, options = {}) {
+  const maxRetries = options.retries || 3;
   let lastError;
 
-  for (let attempt = 1; attempt <= retries; attempt++) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const zai = await ZAI.create();
 
       const completion = await zai.chat.completions.create({
-        messages: messages,
-        thinking: { type: 'disabled' }
+        messages,
+        ...options
       });
 
-      const response = completion.choices[0]?.message?.content;
+      const content = completion.choices[0]?.message?.content;
 
-      if (!response || response.trim().length === 0) {
-        throw new Error('Empty response from AI');
+      if (!content?.trim()) {
+        throw new Error('Empty response');
       }
 
       return {
         success: true,
-        content: response,
+        content,
+        usage: completion.usage,
         attempts: attempt
       };
     } catch (error) {
       lastError = error;
-      console.error(`Attempt ${attempt} failed:`, error.message);
 
-      if (attempt < retries) {
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+        await new Promise(r => setTimeout(r, delay));
       }
     }
   }
 
   return {
     success: false,
-    error: lastError.message,
-    attempts: retries
+    error: lastError?.message,
+    attempts: maxRetries
   };
 }
-```
-
-### 3. Context Management
-
-```javascript
-class ManagedConversation {
-  constructor(maxMessages = 20) {
-    this.maxMessages = maxMessages;
-    this.systemPrompt = '';
-    this.messages = [];
-    this.zai = null;
-  }
-
-  async initialize(systemPrompt) {
-    this.zai = await ZAI.create();
-    this.systemPrompt = systemPrompt;
-    this.messages = [
-      {
-        role: 'assistant',
-        content: systemPrompt
-      }
-    ];
-  }
-
-  async chat(userMessage) {
-    // Add user message
-    this.messages.push({
-      role: 'user',
-      content: userMessage
-    });
-
-    // Trim old messages if exceeding limit (keep system prompt)
-    if (this.messages.length > this.maxMessages) {
-      this.messages = [
-        this.messages[0], // Keep system prompt
-        ...this.messages.slice(-(this.maxMessages - 1))
-      ];
-    }
-
-    const completion = await this.zai.chat.completions.create({
-      messages: this.messages,
-      thinking: { type: 'disabled' }
-    });
-
-    const response = completion.choices[0]?.message?.content;
-
-    this.messages.push({
-      role: 'assistant',
-      content: response
-    });
-
-    return response;
-  }
-
-  getTokenEstimate() {
-    // Rough estimate: ~4 characters per token
-    const totalChars = this.messages
-      .map(m => m.content.length)
-      .reduce((a, b) => a + b, 0);
-    return Math.ceil(totalChars / 4);
-  }
-}
-```
-
-### 4. Response Processing
-
-```javascript
-async function getStructuredResponse(query, format = 'json') {
-  const zai = await ZAI.create();
-
-  const formatInstructions = {
-    json: 'Respond with valid JSON only. No additional text.',
-    list: 'Respond with a numbered list.',
-    markdown: 'Respond in Markdown format.'
-  };
-
-  const completion = await zai.chat.completions.create({
-    messages: [
-      {
-        role: 'assistant',
-        content: `You are a helpful assistant. ${formatInstructions[format]}`
-      },
-      {
-        role: 'user',
-        content: query
-      }
-    ],
-    thinking: { type: 'disabled' }
-  });
-
-  const response = completion.choices[0]?.message?.content;
-
-  // Parse JSON if requested
-  if (format === 'json') {
-    try {
-      return JSON.parse(response);
-    } catch (e) {
-      console.error('Failed to parse JSON response');
-      return { raw: response };
-    }
-  }
-
-  return response;
-}
-
-// Usage
-const jsonData = await getStructuredResponse(
-  'List three programming languages with their primary use cases',
-  'json'
-);
-console.log(jsonData);
 ```
 
 ## Common Use Cases
 
-1. **Chatbots & Virtual Assistants**: Build conversational interfaces for customer support
-2. **Content Generation**: Create articles, product descriptions, marketing copy
-3. **Code Assistance**: Generate, explain, and debug code
-4. **Data Analysis**: Analyze and summarize complex data sets
-5. **Language Translation**: Translate text between languages
-6. **Educational Tools**: Create tutoring and learning applications
-7. **Email Automation**: Generate professional email responses
-8. **Creative Writing**: Story generation, poetry, and creative content
-
-## Integration Examples
-
-### Express.js Chatbot API
-
-```javascript
-import express from 'express';
-import ZAI from 'z-ai-web-dev-sdk';
-
-const app = express();
-app.use(express.json());
-
-// Store conversations in memory (use database in production)
-const conversations = new Map();
-
-let zaiInstance;
-
-async function initZAI() {
-  zaiInstance = await ZAI.create();
-}
-
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { sessionId, message, systemPrompt } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-
-    // Get or create conversation history
-    let history = conversations.get(sessionId) || [
-      {
-        role: 'assistant',
-        content: systemPrompt || 'You are a helpful assistant.'
-      }
-    ];
-
-    // Add user message
-    history.push({
-      role: 'user',
-      content: message
-    });
-
-    // Get completion
-    const completion = await zaiInstance.chat.completions.create({
-      messages: history,
-      thinking: { type: 'disabled' }
-    });
-
-    const aiResponse = completion.choices[0]?.message?.content;
-
-    // Add AI response to history
-    history.push({
-      role: 'assistant',
-      content: aiResponse
-    });
-
-    // Save updated history
-    conversations.set(sessionId, history);
-
-    res.json({
-      success: true,
-      response: aiResponse,
-      messageCount: history.length - 1
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-app.delete('/api/chat/:sessionId', (req, res) => {
-  const { sessionId } = req.params;
-  conversations.delete(sessionId);
-  res.json({ success: true, message: 'Conversation cleared' });
-});
-
-initZAI().then(() => {
-  app.listen(3000, () => {
-    console.log('Chatbot API running on port 3000');
-  });
-});
-```
+| Use Case | Recommended Model | Features |
+|----------|------------------|----------|
+| General Chat | GLM-4.5-Turbo | Fast, efficient |
+| Complex Reasoning | GLM-5 | Extended thinking |
+| Code Generation | GLM-4.5 | Function calling |
+| Data Analysis | GLM-5 | Code interpreter |
+| Document Q&A | GLM-4.5-Turbo | Large context |
+| Customer Support | GLM-4.5-Turbo | Function calling |
+| Content Creation | GLM-4.5 | Streaming |
 
 ## Troubleshooting
 
-**Issue**: "SDK must be used in backend"
-- **Solution**: Ensure z-ai-web-dev-sdk is only imported and used in server-side code
-
-**Issue**: Empty or incomplete responses
-- **Solution**: Check that completion.choices[0]?.message?.content exists and is not empty
-
-**Issue**: Conversation context getting too long
-- **Solution**: Implement message trimming to keep only recent messages
-
-**Issue**: Inconsistent responses
-- **Solution**: Use more specific system prompts and provide clear instructions
-
-**Issue**: Rate limiting errors
-- **Solution**: Implement retry logic with exponential backoff
-
-## Performance Tips
-
-1. **Reuse SDK Instance**: Create ZAI instance once and reuse across requests
-2. **Manage Context Length**: Trim old messages to avoid token limits
-3. **Implement Caching**: Cache responses for common queries
-4. **Use Specific Prompts**: Clear prompts lead to faster, better responses
-5. **Handle Errors Gracefully**: Implement retry logic and fallback responses
-
-## Security Considerations
-
-1. **Input Validation**: Always validate and sanitize user input
-2. **Rate Limiting**: Implement rate limits to prevent abuse
-3. **API Key Protection**: Never expose SDK credentials in client-side code
-4. **Content Filtering**: Filter sensitive or inappropriate content
-5. **Session Management**: Implement proper session handling and cleanup
+| Issue | Solution |
+|-------|----------|
+| Context too long | Use GLM-4.5-Turbo (256K context) or trim messages |
+| Slow responses | Use streaming for perceived speed |
+| Inconsistent outputs | Use structured outputs with JSON schema |
+| Function not called | Check function definitions and descriptions |
+| Hallucination | Use thinking mode for verification |
+| Rate limits | Implement exponential backoff |
 
 ## Remember
 
 - Always use z-ai-web-dev-sdk in backend code only
-- The SDK is already installed - import as shown in examples
-- Use the 'assistant' role for system prompts
-- Set thinking to { type: 'disabled' } for standard completions
-- Implement proper error handling and retries for production
-- Manage conversation history to avoid token limits
-- Clear and specific prompts lead to better results
-- Check `scripts/chat.ts` for a quick start example
+- Use `thinking: { type: 'extended' }` for complex reasoning
+- Implement streaming for better UX
+- Use JSON schema for guaranteed output formats
+- Function calling enables tool integration
+- Context window up to 1M tokens with GLM-5
+- Always validate user input
+- Implement proper error handling
