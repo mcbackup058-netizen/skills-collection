@@ -1,0 +1,184 @@
+#!/bin/bash
+#
+# Step Flash Agent - Simple Prompt Runner
+# Usage: ./ask "your prompt here"
+#
+# Examples:
+#   ./ask "What is quantum computing?"
+#   ./ask --research "Research AI trends"
+#   ./ask --code "Write a Python function"
+#   ./ask --vps "Check server status"
+#
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# API Configuration
+API_KEY="${AI_STEP_FLASH_API_KEY:-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}"
+API_URL="https://openrouter.ai/api/v1/chat/completions"
+MODEL="step-ai/step-flash-3.5"
+
+# VPS Configuration
+VPS_HOST="103.157.27.152"
+VPS_USER="hyperlot99"
+VPS_PASS="@Dilarang9"
+
+# Parse arguments
+PRESET="assistant"
+PROMPT=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -r|--research)
+            PRESET="researcher"
+            shift
+            ;;
+        -c|--code|--dev)
+            PRESET="developer"
+            shift
+            ;;
+        -w|--write)
+            PRESET="writer"
+            shift
+            ;;
+        -a|--analyze)
+            PRESET="analyst"
+            shift
+            ;;
+        -s|--vps|--server)
+            PRESET="vps"
+            shift
+            ;;
+        -h|--help)
+            echo -e "${CYAN}Step Flash Agent - Simple Runner${NC}"
+            echo ""
+            echo "Usage: ./ask [options] \"your prompt\""
+            echo ""
+            echo "Options:"
+            echo "  -r, --research    Research mode"
+            echo "  -c, --code        Developer mode"
+            echo "  -w, --write       Writer mode"
+            echo "  -a, --analyze     Analyst mode"
+            echo "  -s, --vps         VPS management mode"
+            echo "  -h, --help        Show this help"
+            echo ""
+            echo "Examples:"
+            echo "  ./ask \"What is machine learning?\""
+            echo "  ./ask --research \"Research quantum computing\""
+            echo "  ./ask --code \"Create a REST API\""
+            echo "  ./ask --vps \"Check server memory\""
+            exit 0
+            ;;
+        *)
+            PROMPT="$1"
+            shift
+            ;;
+    esac
+done
+
+# Check if prompt is provided
+if [ -z "$PROMPT" ]; then
+    echo -e "${RED}Error: No prompt provided${NC}"
+    echo "Usage: ./ask \"your prompt here\""
+    exit 1
+fi
+
+# System prompts
+get_system_prompt() {
+    case $PRESET in
+        researcher)
+            echo "You are a research assistant. Provide thorough, well-researched answers."
+            ;;
+        developer)
+            echo "You are an expert developer assistant. Write clean, efficient code with explanations."
+            ;;
+        writer)
+            echo "You are a writing assistant. Help create engaging, well-structured content."
+            ;;
+        analyst)
+            echo "You are a data analyst assistant. Help analyze data and provide insights."
+            ;;
+        vps)
+            echo "You are a VPS/server management assistant. Help with server administration, deployment, and monitoring. Provide exact commands that can be executed. Server: $VPS_HOST, User: $VPS_USER"
+            ;;
+        *)
+            echo "You are a helpful AI assistant. Be concise and helpful."
+            ;;
+    esac
+}
+
+# VPS Command Detection
+check_vps_command() {
+    local prompt_lower=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
+    
+    # Common VPS commands
+    case $prompt_lower in
+        *"status"*|*"system info"*)
+            echo -e "${CYAN}Suggested Command:${NC}"
+            echo "  ssh $VPS_USER@$VPS_HOST 'uptime && free -h && df -h'"
+            echo ""
+            ;;
+        *"memory"*|*"ram"*)
+            echo -e "${CYAN}Suggested Command:${NC}"
+            echo "  ssh $VPS_USER@$VPS_HOST 'free -h'"
+            echo ""
+            ;;
+        *"disk"*|*"storage"*)
+            echo -e "${CYAN}Suggested Command:${NC}"
+            echo "  ssh $VPS_USER@$VPS_HOST 'df -h'"
+            echo ""
+            ;;
+        *"docker"*)
+            echo -e "${CYAN}Suggested Command:${NC}"
+            echo "  ssh $VPS_USER@$VPS_HOST 'docker ps -a && docker images'"
+            echo ""
+            ;;
+        *"nginx"*)
+            echo -e "${CYAN}Suggested Command:${NC}"
+            echo "  ssh $VPS_USER@$VPS_HOST 'systemctl status nginx'"
+            echo ""
+            ;;
+        *"processes"*|*"running"*)
+            echo -e "${CYAN}Suggested Command:${NC}"
+            echo "  ssh $VPS_USER@$VPS_HOST 'ps aux --sort=-%mem | head -20'"
+            echo ""
+            ;;
+    esac
+}
+
+# If VPS mode, show suggested command first
+if [ "$PRESET" = "vps" ]; then
+    echo -e "${BLUE}🖥️  VPS Mode: $VPS_HOST${NC}"
+    check_vps_command
+fi
+
+# Make API request
+echo -e "${CYAN}📝 Prompt: $PROMPT${NC}"
+echo -e "${CYAN}🎯 Mode: $PRESET${NC}"
+echo ""
+echo -e "${GREEN}🤖 Response:${NC}"
+
+# Build JSON payload
+SYSTEM_PROMPT=$(get_system_prompt)
+
+# Make the API call
+curl -s -X POST "$API_URL" \
+    -H "Authorization: Bearer $API_KEY" \
+    -H "Content-Type: application/json" \
+    -H "HTTP-Referer: https://github.com/mcbackup058-netizen/skills-collection" \
+    -H "X-Title: Step Flash Simple Runner" \
+    -d "{
+        \"model\": \"$MODEL\",
+        \"messages\": [
+            {\"role\": \"system\", \"content\": \"$SYSTEM_PROMPT\"},
+            {\"role\": \"user\", \"content\": $(echo "$PROMPT" | jq -Rs .)}
+        ],
+        \"temperature\": 0.7,
+        \"max_tokens\": 4096
+    }" | jq -r '.choices[0].message.content'
+
+echo ""

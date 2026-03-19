@@ -1,38 +1,34 @@
 /**
  * Type Definitions for Step Flash Agent
- * Comprehensive type definitions for the agent framework
- * Last Updated: March 2026
  */
 
 // ============= Core Agent Types =============
 
 export interface AgentConfig {
-  /** OpenRouter API key */
   apiKey: string;
-  /** Model to use */
   model?: string;
-  /** Maximum planning/execution iterations */
   maxIterations?: number;
-  /** Request timeout in milliseconds */
   timeout?: number;
-  /** Enable verbose logging */
   verbose?: boolean;
-  /** Enable memory system */
   memoryEnabled?: boolean;
-  /** Temperature for generation */
   temperature?: number;
-  /** Tools to register */
   tools?: string[];
-  /** System prompt override */
   systemPrompt?: string;
+  baseURL?: string;
 }
 
 export interface Message {
   role: 'system' | 'user' | 'assistant' | 'tool' | 'function';
-  content: string;
+  content: string | ContentPart[];
   name?: string;
   toolCallId?: string;
   toolCalls?: ToolCall[];
+}
+
+export interface ContentPart {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: { url: string };
 }
 
 export interface ToolCall {
@@ -59,7 +55,7 @@ export interface Tool {
   description: string;
   parameters: JSONSchema;
   execute: (args: Record<string, any>) => Promise<ToolExecutionResult>;
-  category?: ToolCategory;
+  category?: string;
   requiresConfirmation?: boolean;
   dangerous?: boolean;
 }
@@ -70,19 +66,6 @@ export interface ToolExecutionResult {
   error?: string;
   metadata?: Record<string, any>;
 }
-
-export type ToolCategory = 
-  | 'web' 
-  | 'code' 
-  | 'file' 
-  | 'memory' 
-  | 'reasoning' 
-  | 'communication'
-  | 'data'
-  | 'api'
-  | 'multimedia'
-  | 'system'
-  | 'general';
 
 export interface JSONSchema {
   type: string;
@@ -95,92 +78,13 @@ export interface JSONSchema {
   [key: string]: any;
 }
 
-// ============= Memory Types =============
-
-export interface Memory {
-  id: string;
-  type: 'short_term' | 'long_term' | 'episodic' | 'semantic';
-  content: string;
-  embedding?: number[];
-  metadata: MemoryMetadata;
-  createdAt: Date;
-  lastAccessed: Date;
-  accessCount: number;
-  importance: number;
-}
-
-export interface MemoryMetadata {
-  source?: string;
-  tags?: string[];
-  entities?: string[];
-  sentiment?: 'positive' | 'negative' | 'neutral';
-  conversationId?: string;
-  taskId?: string;
-  importance?: number;
-}
-
-export interface ConversationContext {
-  id: string;
-  messages: Message[];
-  summary?: string;
-  entities: Entity[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Entity {
-  name: string;
-  type: string;
-  mentions: number;
-  lastMentioned: Date;
-  properties: Record<string, any>;
-}
-
-// ============= Reasoning Types =============
-
-export interface Task {
-  id: string;
-  description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-  priority: number;
-  dependencies: string[];
-  subtasks: string[];
-  assignedTool?: string;
-  result?: any;
-  error?: string;
-  createdAt: Date;
-  completedAt?: Date;
-}
-
-export interface Plan {
-  id: string;
-  goal: string;
-  tasks: Task[];
-  currentTaskIndex: number;
-  status: 'drafting' | 'executing' | 'completed' | 'failed';
-  reasoning: string;
-  createdAt: Date;
-}
-
-export interface ReasoningStep {
-  id: string;
-  type: 'analysis' | 'planning' | 'execution' | 'reflection' | 'correction';
-  content: string;
-  confidence: number;
-  alternatives?: string[];
-  chosenPath?: string;
-  timestamp: Date;
-}
-
 // ============= Agent State =============
 
 export interface AgentState {
   conversationId: string;
   status: AgentStatus;
-  currentPlan?: Plan;
-  reasoningChain: ReasoningStep[];
+  messages: Message[];
   toolHistory: ToolResult[];
-  memoryContext: string[];
   iteration: number;
   startTime: Date;
   lastActivity: Date;
@@ -189,10 +93,8 @@ export interface AgentState {
 export type AgentStatus = 
   | 'idle'
   | 'thinking'
-  | 'planning'
   | 'executing'
   | 'waiting_for_input'
-  | 'waiting_for_confirmation'
   | 'error'
   | 'completed';
 
@@ -204,10 +106,6 @@ export interface AgentResponse {
   content?: string;
   toolCalls?: ToolCall[];
   toolResults?: ToolResult[];
-  reasoning?: ReasoningStep[];
-  plan?: Plan;
-  memory?: Memory[];
-  suggestions?: string[];
   metadata: ResponseMetadata;
 }
 
@@ -227,11 +125,7 @@ export type AgentEventType =
   | 'thinking_end'
   | 'tool_call_start'
   | 'tool_call_end'
-  | 'memory_update'
-  | 'plan_update'
-  | 'task_complete'
-  | 'error'
-  | 'confirmation_required';
+  | 'error';
 
 export interface AgentEvent {
   type: AgentEventType;
@@ -241,85 +135,87 @@ export interface AgentEvent {
 
 export type AgentEventHandler = (event: AgentEvent) => void | Promise<void>;
 
-// ============= Preset Types =============
+// ============= Memory Types =============
 
-export interface PresetAgent {
+export interface Memory {
+  id: string;
+  type: 'short_term' | 'long_term' | 'episodic' | 'semantic';
+  content: string;
+  embedding?: number[];
+  metadata: Record<string, any>;
+  createdAt: Date;
+  lastAccessed: Date;
+  accessCount: number;
+  importance: number;
+}
+
+// ============= VPS Types =============
+
+export interface VPSConfig {
   name: string;
-  description: string;
-  systemPrompt: string;
-  tools: Tool[];
-  config: Partial<AgentConfig>;
-  examples: string[];
+  host: string;
+  port: number;
+  username: string;
+  password?: string;
+  privateKey?: string;
+  description?: string;
+  tags?: string[];
 }
 
-// ============= Config Types =============
+export interface SSHResult {
+  success: boolean;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  command: string;
+  duration: number;
+}
 
-export interface AgentConfigPreset {
+export interface SystemInfo {
+  hostname: string;
+  os: string;
+  kernel: string;
+  uptime: string;
+  cpu: CPUInfo;
+  memory: MemoryInfo;
+  disk: DiskInfo[];
+  network: NetworkInfo;
+}
+
+export interface CPUInfo {
   model: string;
-  maxIterations: number;
-  timeout: number;
-  temperature: number;
-  verbose: boolean;
-  memoryEnabled: boolean;
-  extendedThinking?: boolean;
-  logLevel?: string;
+  cores: number;
+  usage: number;
+  loadAverage: [number, number, number];
 }
 
-export interface TaskTemplate {
-  description: string;
-  steps: Array<{
-    name: string;
-    description: string;
-  }>;
+export interface MemoryInfo {
+  total: number;
+  used: number;
+  free: number;
+  cached: number;
+  swapTotal: number;
+  swapUsed: number;
 }
 
-// ============= Utility Types =============
-
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-export interface Logger {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+export interface DiskInfo {
+  filesystem: string;
+  size: number;
+  used: number;
+  available: number;
+  mountPoint: string;
+  usagePercent: number;
 }
 
-// ============= Export All =============
+export interface NetworkInfo {
+  interfaces: NetworkInterface[];
+  connections: number;
+}
 
-export type {
-  // Agent
-  AgentConfig,
-  Message,
-  ToolCall,
-  ToolResult,
-  Tool,
-  ToolExecutionResult,
-  ToolCategory,
-  JSONSchema,
-  // Memory
-  Memory,
-  MemoryMetadata,
-  ConversationContext,
-  Entity,
-  // Reasoning
-  Task,
-  Plan,
-  ReasoningStep,
-  // State
-  AgentState,
-  AgentStatus,
-  // Response
-  AgentResponse,
-  ResponseMetadata,
-  // Events
-  AgentEventType,
-  AgentEvent,
-  AgentEventHandler,
-  // Presets
-  PresetAgent,
-  AgentConfigPreset,
-  TaskTemplate,
-  // Utils
-  LogLevel,
-  Logger,
-};
+export interface NetworkInterface {
+  name: string;
+  ip: string;
+  mac: string;
+  rxBytes: number;
+  txBytes: number;
+}

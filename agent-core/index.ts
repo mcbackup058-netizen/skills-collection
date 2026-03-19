@@ -2,7 +2,7 @@
  * Step Flash 3.5 AI Agent Core
  * Main entry point for the agent framework
  * Last Updated: March 2026
- * Version: 3.0.0
+ * Version: 3.1.0
  */
 
 // ============= Core Agent =============
@@ -17,6 +17,18 @@ export * from './tools/data';
 export { dataTools } from './tools/data';
 export * from './tools/api';
 export { apiTools } from './tools/api';
+
+// ============= VPS Tools =============
+export * from './vps/tools';
+export { vpsTools } from './vps/tools';
+export * from './vps/config';
+export { 
+  vpsServers, 
+  defaultServer, 
+  getServer, 
+  listServers,
+  isDangerousCommand,
+} from './vps/config';
 
 // ============= Memory =============
 export { MemoryManager } from './memory/MemoryManager';
@@ -38,47 +50,25 @@ export {
   getSystemPrompt,
 } from './presets/config';
 
-// ============= Utilities =============
-export * from './utils/helpers';
-export { utils } from './utils/helpers';
-
 // ============= Types =============
 export * from './types';
-
-// ============= Quick Start =============
-export { quickStart, ask, chat, main } from './quickstart';
-
-// ============= CLI =============
-export { AgentCLI } from './cli/cli';
 
 // ============= Convenience Factory =============
 
 import { StepFlashAgent } from './StepFlashAgent';
-import { AgentConfig, Tool } from './types';
 import { builtinTools } from './tools/builtin';
 import { dataTools } from './tools/data';
 import { apiTools } from './tools/api';
-import { getPreset } from './presets/agents';
-import { getConfig, getToolPreset, getSystemPrompt } from './presets/config';
+import { vpsTools } from './vps/tools';
+import { getConfig, getToolPreset } from './presets/config';
+
+// All available tools
+export const allTools = [...builtinTools, ...dataTools, ...apiTools, ...vpsTools];
 
 /**
  * Create a new Step Flash Agent with sensible defaults
- * @param apiKey - OpenRouter API key (or set AI_STEP_FLASH_API_KEY env var)
+ * @param apiKey - OpenRouter API key
  * @param options - Optional configuration
- * @returns Configured StepFlashAgent instance
- * 
- * @example
- * ```typescript
- * // Simple usage
- * const agent = await createAgent('sk-or-v1-your-key');
- * const response = await agent.chat('Hello!');
- * 
- * // With preset
- * const researcher = await createAgent('sk-or-v1-your-key', { preset: 'researcher' });
- * 
- * // With all tools
- * const powerful = await createAgent('sk-or-v1-your-key', { allTools: true });
- * ```
  */
 export async function createAgent(
   apiKey: string,
@@ -87,38 +77,22 @@ export async function createAgent(
     config?: string;
     tools?: string;
     allTools?: boolean;
+    vpsMode?: boolean;
     verbose?: boolean;
     systemPrompt?: string;
   } = {}
 ): Promise<StepFlashAgent> {
-  // Get configuration
   const agentConfig = getConfig(options.config as any || 'default');
-  const preset = options.preset ? getPreset(options.preset) : null;
 
-  // Create agent
   const agent = new StepFlashAgent({
     apiKey,
     ...agentConfig,
     verbose: options.verbose ?? agentConfig.verbose,
   });
 
-  // Set system prompt
-  if (options.systemPrompt) {
-    // Custom system prompt
-  } else if (preset) {
-    // Use preset system prompt
-  }
-
   // Register tools
-  if (options.allTools) {
-    agent.registerTools([...builtinTools, ...dataTools, ...apiTools]);
-  } else if (preset) {
-    agent.registerTools(preset.tools);
-  } else if (options.tools) {
-    const toolPreset = getToolPreset(options.tools as any);
-    const allTools = [...builtinTools, ...dataTools, ...apiTools];
-    const selectedTools = allTools.filter(t => toolPreset.includes(t.name));
-    agent.registerTools(selectedTools);
+  if (options.allTools || options.vpsMode) {
+    agent.registerTools(allTools);
   } else {
     agent.registerTools(builtinTools);
   }
@@ -128,15 +102,6 @@ export async function createAgent(
 
 /**
  * One-shot query to the agent
- * @param question - The question to ask
- * @param apiKey - API key
- * @returns The agent's response
- * 
- * @example
- * ```typescript
- * const answer = await query('What is quantum computing?', 'sk-or-v1-your-key');
- * console.log(answer);
- * ```
  */
 export async function query(
   question: string,
@@ -148,28 +113,22 @@ export async function query(
 }
 
 /**
- * Create a preset agent
- * @param presetName - Name of the preset (researcher, developer, writer, analyst, assistant)
- * @param apiKey - API key
- * @returns Configured agent with preset tools and prompt
- * 
- * @example
- * ```typescript
- * const researcher = await createPresetAgent('researcher', 'sk-or-v1-your-key');
- * const report = await researcher.chat('Research AI trends');
- * ```
+ * Create a VPS management agent
  */
-export async function createPresetAgent(
-  presetName: string,
+export async function createVpsAgent(
   apiKey: string
 ): Promise<StepFlashAgent> {
-  return createAgent(apiKey, { preset: presetName });
+  return createAgent(apiKey, { 
+    vpsMode: true, 
+    preset: 'vps',
+    config: 'default' 
+  });
 }
 
 // Default export
 export default StepFlashAgent;
 
 // Version info
-export const VERSION = '3.0.0';
+export const VERSION = '3.1.0';
 export const AGENT_NAME = 'Step Flash Agent';
 export const MODEL_NAME = 'step-ai/step-flash-3.5';
