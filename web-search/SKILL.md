@@ -1,12 +1,17 @@
 ---
 name: web-search
-description: Implement web search capabilities using the z-ai-web-dev-sdk. Use this skill when the user needs to search for real-time information from the web, retrieve up-to-date content beyond the knowledge cutoff, or find the latest news and data. Returns structured search results with URLs, snippets, and metadata.
+description: Implement web search capabilities using the z-ai-web-dev-sdk or AI Step Flash 3.5. Use this skill when the user needs to search for real-time information from the web, retrieve up-to-date content beyond the knowledge cutoff, or find the latest news and data. Returns structured search results with URLs, snippets, and metadata.
 license: MIT
+version: 1.1.0
+last_updated: 2026-03
+compatible_with:
+  - z-ai-web-dev-sdk
+  - AI Step Flash 3.5 (OpenRouter)
 ---
 
 # Web Search Skill
 
-This skill guides the implementation of web search functionality using the z-ai-web-dev-sdk package, enabling applications to search the web and retrieve current information.
+This skill guides the implementation of web search functionality using the z-ai-web-dev-sdk package or AI Step Flash 3.5 via OpenRouter, enabling applications to search the web and retrieve current information.
 
 ## Installation Path
 
@@ -15,6 +20,51 @@ This skill guides the implementation of web search functionality using the z-ai-
 Extract this skill package to the above path in your project.
 
 **Reference Scripts**: Example test scripts are available in the `{project_path}/skills/web-search/scripts/` directory for quick testing and reference. See `{project_path}/skills/web-search/scripts/web_search.ts` for a working example.
+
+## 🆕 AI Step Flash 3.5 Support
+
+This skill now supports **AI Step Flash 3.5** for web search capabilities via OpenRouter API!
+
+### Using Web Search with AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from '../config/ai-step-flash-adapter';
+
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Search the web
+const results = await client.functions.invoke('web_search', {
+  query: 'latest artificial intelligence news',
+  num: 10
+});
+
+console.log('Search Results:', results);
+
+// Process results
+results.forEach(result => {
+  console.log(`${result.name}`);
+  console.log(`  URL: ${result.url}`);
+  console.log(`  Snippet: ${result.snippet}`);
+});
+```
+
+### Search with Filters
+
+```javascript
+// Search for recent news
+const news = await client.functions.invoke('web_search', {
+  query: 'technology updates today',
+  num: 5,
+  recency_days: 1 // Last 24 hours
+});
+
+// Search for specific content
+const research = await client.functions.invoke('web_search', {
+  query: 'machine learning research papers',
+  num: 10,
+  recency_days: 30 // Last 30 days
+});
+```
 
 ## Overview
 

@@ -1,10 +1,59 @@
 # 🎯 Skills Collection 2026
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)]()
+[![Version](https://img.shields.io/badge/version-3.0.0-green.svg)]()
 [![Updated](https://img.shields.io/badge/updated-March%202026-brightgreen.svg)]()
+[![AI Step Flash](https://img.shields.io/badge/AI%20Step%20Flash-3.5-purple.svg)]()
 
-Koleksi lengkap skill AI untuk pengembangan aplikasi menggunakan z-ai-web-dev-sdk. Repository ini berisi 19 modul skill yang dapat digunakan untuk membangun aplikasi AI yang powerful dengan fitur-fitur terbaru 2026.
+Koleksi lengkap skill AI untuk pengembangan aplikasi menggunakan z-ai-web-dev-sdk dengan dukungan **AI Step Flash 3.5** via OpenRouter. Repository ini berisi 19 modul skill yang dapat digunakan untuk membangun aplikasi AI yang powerful dengan fitur-fitur terbaru 2026.
+
+## 🆕 AI Step Flash 3.5 Integration
+
+Skills Collection sekarang mendukung **AI Step Flash 3.5** melalui OpenRouter API! Ini memungkinkan Anda menggunakan skill-skill ini dengan AI Step Flash 3.5 sebagai backend AI.
+
+### Keunggulan AI Step Flash 3.5
+
+| Feature | Capability |
+|---------|------------|
+| **Context Window** | 128K tokens |
+| **Max Output** | 8,192 tokens |
+| **Vision Support** | ✅ Image & Video |
+| **Function Calling** | ✅ Native Support |
+| **Streaming** | ✅ Real-time |
+| **JSON Mode** | ✅ Structured Output |
+
+### Setup AI Step Flash 3.5
+
+```bash
+# 1. Copy environment template
+cp .env.example .env
+
+# 2. Set your API key
+AI_STEP_FLASH_API_KEY=sk-or-v1-your-api-key-here
+
+# 3. Import the adapter
+import AIStepFlashClient from './config/ai-step-flash-adapter';
+```
+
+### Quick Start dengan AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from './config/ai-step-flash-adapter';
+
+// Inisialisasi dengan API key
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Chat completion
+const completion = await client.chat.completions.create({
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Explain quantum computing' }
+  ],
+  thinking: { type: 'extended' } // Extended thinking mode
+});
+
+console.log(completion.choices[0]?.message?.content);
+```
 
 ## ✨ Highlights 2026
 
@@ -15,6 +64,7 @@ Koleksi lengkap skill AI untuk pengembangan aplikasi menggunakan z-ai-web-dev-sd
 - 🎬 **Video Understanding** dengan timeline extraction
 - 📄 **Document AI** untuk PDF, DOCX dengan OCR 99.5% accuracy
 - 🌐 **Real-time Streaming** untuk ASR dan TTS
+- ⚡ **AI Step Flash 3.5** Integration via OpenRouter
 
 ## 📋 Daftar Skill
 
@@ -62,7 +112,7 @@ Koleksi lengkap skill AI untuk pengembangan aplikasi menggunakan z-ai-web-dev-sd
 ### Prerequisites
 
 - Node.js 18+
-- z-ai-web-dev-sdk (sudah terinstall)
+- z-ai-web-dev-sdk (sudah terinstall) atau AI Step Flash 3.5 API key
 
 ### Installation
 
@@ -75,9 +125,13 @@ cd skills-collection/LLM
 
 # Install dependencies (jika ada)
 npm install
+
+# Setup environment untuk AI Step Flash 3.5
+cp ../.env.example ../.env
+# Edit .env dengan API key Anda
 ```
 
-### Penggunaan Dasar
+### Penggunaan dengan z-ai-web-dev-sdk
 
 ```javascript
 import ZAI from 'z-ai-web-dev-sdk';
@@ -97,7 +151,55 @@ const completion = await zai.chat.completions.create({
 console.log(completion.choices[0]?.message?.content);
 ```
 
+### Penggunaan dengan AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from './config/ai-step-flash-adapter';
+
+// Inisialisasi dengan API key OpenRouter
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Chat completion dengan AI Step Flash 3.5
+const completion = await client.chat.completions.create({
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Explain quantum computing' }
+  ],
+  model: 'flash-3.5', // Menggunakan AI Step Flash 3.5
+  thinking: { type: 'extended' }
+});
+
+console.log(completion.choices[0]?.message?.content);
+```
+
+### Vision dengan AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from './config/ai-step-flash-adapter';
+
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Image analysis
+const result = await client.chat.completions.createVision({
+  messages: [{
+    role: 'user',
+    content: [
+      { type: 'text', text: 'What is in this image?' },
+      { type: 'image_url', image_url: { url: 'https://example.com/image.jpg' } }
+    ]
+  }]
+});
+
+console.log(result.choices[0]?.message?.content);
+```
+
 ## 📊 Performance Metrics 2026
+
+### AI Step Flash 3.5
+- **Context Window**: 128K tokens
+- **Max Output**: 8,192 tokens
+- **Vision Support**: Image & Video
+- **Streaming Latency**: < 200ms first token
 
 ### ASR (Speech-to-Text)
 - **Word Error Rate**: 2.1% (↓ dari 3.5% di 2025)
@@ -128,28 +230,34 @@ console.log(completion.choices[0]?.message?.content);
 
 ```
 skills-collection/
-├── ASR/                    # Speech-to-Text ⭐ Updated 2026
-├── TTS/                    # Text-to-Speech ⭐ Updated 2026
-├── LLM/                    # Large Language Model ⭐ Updated 2026
-├── VLM/                    # Vision Language Model ⭐ Updated 2026
-├── image-generation/       # AI Image Generation ⭐ Updated 2026
-├── video-generation/       # AI Video Generation ⭐ Updated 2026
-├── video-understand/       # Video Understanding
-├── web-search/             # Web Search
-├── web-reader/             # Web Reader
-├── pdf/                    # PDF Processing
-├── docx/                   # Word Document
-├── xlsx/                   # Excel Spreadsheet
-├── pptx/                   # PowerPoint
-├── finance/                # Finance API
-├── fullstack-dev/          # Fullstack Development
-├── gift-evaluator/         # Gift Evaluator
-├── agent-browser/          # Browser Automation
-├── podcast-generate/       # Podcast Generator
+├── config/                     # ⭐ AI Step Flash 3.5 Configuration
+│   ├── ai-step-flash.config.ts     # Config file
+│   └── ai-step-flash-adapter.ts    # SDK-compatible adapter
+├── ASR/                        # Speech-to-Text ⭐ Updated 2026
+├── TTS/                        # Text-to-Speech ⭐ Updated 2026
+├── LLM/                        # Large Language Model ⭐ Updated 2026
+├── VLM/                        # Vision Language Model ⭐ Updated 2026
+├── image-generation/           # AI Image Generation ⭐ Updated 2026
+├── video-generation/           # AI Video Generation ⭐ Updated 2026
+├── video-understand/           # Video Understanding
+├── web-search/                 # Web Search
+├── web-reader/                 # Web Reader
+├── pdf/                        # PDF Processing
+├── docx/                       # Word Document
+├── xlsx/                       # Excel Spreadsheet
+├── pptx/                       # PowerPoint
+├── finance/                    # Finance API
+├── fullstack-dev/              # Fullstack Development
+├── gift-evaluator/             # Gift Evaluator
+├── agent-browser/              # Browser Automation
+├── podcast-generate/           # Podcast Generator
+├── .env.example                # Environment template
 └── README.md
 ```
 
 ## 🔧 CLI Usage
+
+### Dengan z-ai-web-dev-sdk
 
 ```bash
 # ASR - Transcribe audio
@@ -166,6 +274,24 @@ z-ai image -p "Mountain landscape" -o ./landscape.png -s 2048x2048
 
 # Video Generation - 4K with audio
 z-ai video -p "Nature scene" --size 3840x2160 --with-audio --poll
+```
+
+### Dengan AI Step Flash 3.5
+
+```javascript
+// Gunakan adapter untuk semua operasi
+import AIStepFlashClient from './config/ai-step-flash-adapter';
+
+const client = await AIStepFlashClient.create(process.env.AI_STEP_FLASH_API_KEY);
+
+// Chat
+const chat = await client.chat.completions.create({...});
+
+// Vision
+const vision = await client.chat.completions.createVision({...});
+
+// Function calling
+const result = await client.functions.invoke('web_search', {...});
 ```
 
 ## 📖 Dokumentasi
@@ -190,10 +316,12 @@ Setiap skill memiliki file `SKILL.md` yang berisi:
 ## ⚠️ Catatan Penting
 
 1. **z-ai-web-dev-sdk** HARUS digunakan di backend saja, jangan di client-side code
-2. SDK sudah terinstall - import sesuai contoh di masing-masing SKILL.md
-3. Untuk PPT/PPTX, gunakan AI PPT Mode yang tersedia di interface
-4. Implementasi error handling untuk production
-5. Gunakan caching untuk optimasi performa
+2. **AI Step Flash 3.5** menggunakan OpenRouter API - pastikan API key valid
+3. SDK sudah terinstall - import sesuai contoh di masing-masing SKILL.md
+4. Untuk PPT/PPTX, gunakan AI PPT Mode yang tersedia di interface
+5. Implementasi error handling untuk production
+6. Gunakan caching untuk optimasi performa
+7. Rate limits: 60 requests/minute untuk AI Step Flash 3.5
 
 ## 🤝 Kontribusi
 
@@ -210,8 +338,15 @@ Kontribusi sangat diterima! Silakan:
 | Bug Reports | Baca Troubleshooting di SKILL.md |
 | Feature Requests | Buka Issue di GitHub |
 | General Questions | Check dokumentasi skill |
+| AI Step Flash Issues | Verifikasi API key dan rate limits |
 
 ## 📈 Changelog
+
+### v3.0.0 (March 2026) - AI Step Flash Integration
+- ⭐ Added AI Step Flash 3.5 integration via OpenRouter
+- 📦 Added SDK-compatible adapter for seamless migration
+- 🔧 Added configuration files for AI Step Flash 3.5
+- 📝 Updated documentation with dual SDK support
 
 ### v2.0.0 (March 2026)
 - ✨ Added Extended Thinking untuk LLM
@@ -229,4 +364,4 @@ Kontribusi sangat diterima! Silakan:
 
 **Dibuat dengan ❤️ untuk komunitas developer AI Indonesia**
 
-**Last Updated**: Maret 2026 | **Version**: 2.0.0
+**Last Updated**: Maret 2026 | **Version**: 3.0.0 | **AI Step Flash**: 3.5

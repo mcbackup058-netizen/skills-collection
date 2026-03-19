@@ -1,20 +1,72 @@
 ---
 name: TTS
-description: Implement text-to-speech (TTS) capabilities using the z-ai-web-dev-sdk. Use this skill when the user needs to convert text into natural-sounding speech, create audio content, build voice-enabled applications, or generate spoken audio files. Supports 25+ voices across 15 languages, adjustable speed/pitch/volume, emotional speech, SSML support, and various audio formats.
+description: Implement text-to-speech (TTS) capabilities using the z-ai-web-dev-sdk or AI Step Flash 3.5. Use this skill when the user needs to convert text into natural-sounding speech, create audio content, build voice-enabled applications, or generate spoken audio files. Supports 25+ voices across 15 languages, adjustable speed/pitch/volume, emotional speech, SSML support, and various audio formats.
 license: MIT
-version: 2.0.0
+version: 2.1.0
 last_updated: 2026-03
+compatible_with:
+  - z-ai-web-dev-sdk
+  - AI Step Flash 3.5 (OpenRouter)
 ---
 
 # TTS (Text to Speech) Skill
 
-This skill guides the implementation of text-to-speech (TTS) functionality using the z-ai-web-dev-sdk package, enabling conversion of text into natural-sounding speech audio.
+This skill guides the implementation of text-to-speech (TTS) functionality using the z-ai-web-dev-sdk package or AI Step Flash 3.5 via OpenRouter, enabling conversion of text into natural-sounding speech audio.
 
 ## Skills Path
 
 **Skill Location**: `{project_path}/skills/TTS`
 
 **Reference Scripts**: Example test scripts are available in the `{Skill Location}/scripts/` directory for quick testing and reference. See `{Skill Location}/scripts/tts.ts` for a working example.
+
+## 🆕 AI Step Flash 3.5 Support
+
+This skill now supports **AI Step Flash 3.5** with TTS capabilities via OpenRouter API!
+
+### Using TTS with AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from '../config/ai-step-flash-adapter';
+import fs from 'fs';
+
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Generate speech from text
+const response = await client.audio.tts.create({
+  input: 'Hello, this is a test message from AI Step Flash 3.5!',
+  voice: 'nova',
+  speed: 1.0,
+  emotion: 'neutral',
+  response_format: 'wav'
+});
+
+// Get array buffer from Response object
+const arrayBuffer = await response.arrayBuffer();
+const buffer = Buffer.from(new Uint8Array(arrayBuffer));
+
+fs.writeFileSync('./output.wav', buffer);
+console.log('Audio saved to output.wav');
+```
+
+### TTS with Emotions
+
+```javascript
+// Happy voice
+await client.audio.tts.create({
+  input: 'Congratulations on your achievement!',
+  voice: 'nova',
+  emotion: 'happy',
+  response_format: 'wav'
+});
+
+// Calm narration
+await client.audio.tts.create({
+  input: 'Welcome to our meditation session.',
+  voice: 'yunxi',
+  emotion: 'calm',
+  response_format: 'wav'
+});
+```
 
 ## Overview
 

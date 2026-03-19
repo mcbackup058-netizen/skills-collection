@@ -1,20 +1,49 @@
 ---
 name: ASR
-description: Implement speech-to-text (ASR/automatic speech recognition) capabilities using the z-ai-web-dev-sdk. Use this skill when the user needs to transcribe audio files, convert speech to text, build voice input features, or process audio recordings. Supports base64 encoded audio files and returns accurate text transcriptions with timestamps, speaker diarization, and multi-language support.
+description: Implement speech-to-text (ASR/automatic speech recognition) capabilities using the z-ai-web-dev-sdk or AI Step Flash 3.5. Use this skill when the user needs to transcribe audio files, convert speech to text, build voice input features, or process audio recordings. Supports base64 encoded audio files and returns accurate text transcriptions with timestamps, speaker diarization, and multi-language support.
 license: MIT
-version: 2.0.0
+version: 2.1.0
 last_updated: 2026-03
+compatible_with:
+  - z-ai-web-dev-sdk
+  - AI Step Flash 3.5 (OpenRouter)
 ---
 
 # ASR (Speech to Text) Skill
 
-This skill guides the implementation of speech-to-text (ASR) functionality using the z-ai-web-dev-sdk package, enabling accurate transcription of spoken audio into text.
+This skill guides the implementation of speech-to-text (ASR) functionality using the z-ai-web-dev-sdk package or AI Step Flash 3.5 via OpenRouter, enabling accurate transcription of spoken audio into text.
 
 ## Skills Path
 
 **Skill Location**: `{project_path}/skills/ASR`
 
 **Reference Scripts**: Example test scripts are available in the `{Skill Location}/scripts/` directory for quick testing and reference. See `{Skill Location}/scripts/asr.ts` for a working example.
+
+## 🆕 AI Step Flash 3.5 Support
+
+This skill now supports **AI Step Flash 3.5** with audio understanding capabilities via OpenRouter API!
+
+### Using ASR with AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from '../config/ai-step-flash-adapter';
+import fs from 'fs';
+
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Transcribe audio file
+const audioBuffer = fs.readFileSync('./audio.wav');
+const base64Audio = audioBuffer.toString('base64');
+
+const response = await client.audio.asr.create({
+  file_base64: base64Audio,
+  language: 'auto',
+  timestamps: true
+});
+
+console.log('Transcription:', response.text);
+console.log('Language:', response.detected_language);
+```
 
 ## Overview
 

@@ -1,20 +1,67 @@
 ---
 name: VLM
-description: Implement vision-based AI chat capabilities using the z-ai-web-dev-sdk. Use this skill when the user needs to analyze images, describe visual content, or create applications that combine image understanding with conversational AI. Supports image URLs and base64 encoded images, video analysis, document understanding, and multi-modal interactions with extended thinking.
+description: Implement vision-based AI chat capabilities using the z-ai-web-dev-sdk or AI Step Flash 3.5. Use this skill when the user needs to analyze images, describe visual content, or create applications that combine image understanding with conversational AI. Supports image URLs and base64 encoded images, video analysis, document understanding, and multi-modal interactions with extended thinking.
 license: MIT
-version: 2.0.0
+version: 2.1.0
 last_updated: 2026-03
+compatible_with:
+  - z-ai-web-dev-sdk
+  - AI Step Flash 3.5 (OpenRouter)
 ---
 
 # VLM (Vision Language Model) Skill
 
-This skill guides the implementation of vision chat functionality using the z-ai-web-dev-sdk package, enabling AI models to understand and respond to images, videos, and documents combined with text prompts.
+This skill guides the implementation of vision chat functionality using the z-ai-web-dev-sdk package or AI Step Flash 3.5 via OpenRouter, enabling AI models to understand and respond to images, videos, and documents combined with text prompts.
 
 ## Skills Path
 
 **Skill Location**: `{project_path}/skills/VLM`
 
 **Reference Scripts**: Example test scripts are available in the `{Skill Location}/scripts/` directory for quick testing and reference. See `{Skill Location}/scripts/vlm.ts` for a working example.
+
+## 🆕 AI Step Flash 3.5 Support
+
+This skill now supports **AI Step Flash 3.5** with Vision capabilities via OpenRouter API!
+
+### Using Vision with AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from '../config/ai-step-flash-adapter';
+
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Image analysis
+const result = await client.chat.completions.createVision({
+  messages: [{
+    role: 'user',
+    content: [
+      { type: 'text', text: 'Describe this image in detail' },
+      { type: 'image_url', image_url: { url: 'https://example.com/photo.jpg' } }
+    ]
+  }]
+});
+
+console.log(result.choices[0]?.message?.content);
+```
+
+### Base64 Image Support
+
+```javascript
+import fs from 'fs';
+
+const imageBuffer = fs.readFileSync('./photo.jpg');
+const base64Image = imageBuffer.toString('base64');
+
+const result = await client.chat.completions.createVision({
+  messages: [{
+    role: 'user',
+    content: [
+      { type: 'text', text: 'What do you see?' },
+      { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+    ]
+  }]
+});
+```
 
 ## Overview
 

@@ -1,20 +1,67 @@
 ---
 name: LLM
-description: Implement large language model (LLM) chat completions using the z-ai-web-dev-sdk. Use this skill when the user needs to build conversational AI applications, chatbots, AI assistants, or any text generation features. Supports multi-turn conversations, system prompts, context management, function calling, structured outputs, and thinking/reasoning modes.
+description: Implement large language model (LLM) chat completions using the z-ai-web-dev-sdk or AI Step Flash 3.5. Use this skill when the user needs to build conversational AI applications, chatbots, AI assistants, or any text generation features. Supports multi-turn conversations, system prompts, context management, function calling, structured outputs, and thinking/reasoning modes.
 license: MIT
-version: 3.0.0
+version: 3.1.0
 last_updated: 2026-03
+compatible_with:
+  - z-ai-web-dev-sdk
+  - AI Step Flash 3.5 (OpenRouter)
 ---
 
 # LLM (Large Language Model) Skill
 
-This skill guides the implementation of chat completions functionality using the z-ai-web-dev-sdk package, enabling powerful conversational AI and text generation capabilities.
+This skill guides the implementation of chat completions functionality using the z-ai-web-dev-sdk package or AI Step Flash 3.5 via OpenRouter, enabling powerful conversational AI and text generation capabilities.
 
 ## Skills Path
 
 **Skill Location**: `{project_path}/skills/LLM`
 
 **Reference Scripts**: Example test scripts are available in the `{Skill Location}/scripts/` directory for quick testing and reference. See `{Skill Location}/scripts/chat.ts` for a working example.
+
+## 🆕 AI Step Flash 3.5 Support
+
+This skill now supports **AI Step Flash 3.5** via OpenRouter API! Use the adapter for seamless integration.
+
+### Setup AI Step Flash 3.5
+
+```bash
+# Set environment variable
+export AI_STEP_FLASH_API_KEY=sk-or-v1-your-api-key
+```
+
+### Using AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from '../config/ai-step-flash-adapter';
+
+// Initialize with your OpenRouter API key
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Chat completion
+const completion = await client.chat.completions.create({
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Hello!' }
+  ],
+  model: 'flash-3.5' // Uses step-ai/step-flash-3.5
+});
+
+console.log(completion.choices[0]?.message?.content);
+```
+
+### AI Step Flash 3.5 Capabilities
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| Chat Completions | ✅ | Full support |
+| Streaming | ✅ | Real-time responses |
+| Function Calling | ✅ | Native support |
+| Vision | ✅ | Image & Video understanding |
+| JSON Mode | ✅ | Structured outputs |
+| Extended Thinking | ✅ | Deep reasoning mode |
+| Context Window | 128K | tokens |
+| Max Output | 8K | tokens |
 
 ## Overview
 

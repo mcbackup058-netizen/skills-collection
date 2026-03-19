@@ -1,20 +1,78 @@
 ---
 name: image-generation
-description: Implement AI image generation capabilities using the z-ai-web-dev-sdk. Use this skill when the user needs to create images from text descriptions, generate visual content, create artwork, design assets, or build applications with AI-powered image creation. Supports 7 image sizes, style transfer, image editing, inpainting, outpainting, and upscaling up to 4K resolution.
+description: Implement AI image generation capabilities using the z-ai-web-dev-sdk or AI Step Flash 3.5. Use this skill when the user needs to create images from text descriptions, generate visual content, create artwork, design assets, or build applications with AI-powered image creation. Supports 7 image sizes, style transfer, image editing, inpainting, outpainting, and upscaling up to 4K resolution.
 license: MIT
-version: 2.0.0
+version: 2.1.0
 last_updated: 2026-03
+compatible_with:
+  - z-ai-web-dev-sdk
+  - AI Step Flash 3.5 (OpenRouter)
 ---
 
 # Image Generation Skill
 
-This skill guides the implementation of image generation functionality using the z-ai-web-dev-sdk package and CLI tool, enabling creation of high-quality images from text descriptions.
+This skill guides the implementation of image generation functionality using the z-ai-web-dev-sdk package and CLI tool or AI Step Flash 3.5 via OpenRouter, enabling creation of high-quality images from text descriptions.
 
 ## Skills Path
 
 **Skill Location**: `{project_path}/skills/image-generation`
 
 **Reference Scripts**: Example test scripts are available in the `{Skill Location}/scripts/` directory for quick testing and reference.
+
+## 🆕 AI Step Flash 3.5 Support
+
+This skill now supports **AI Step Flash 3.5** for image generation capabilities via OpenRouter API!
+
+### Using Image Generation with AI Step Flash 3.5
+
+```javascript
+import AIStepFlashClient from '../config/ai-step-flash-adapter';
+import fs from 'fs';
+
+const client = await AIStepFlashClient.create('sk-or-v1-your-api-key');
+
+// Generate image from text
+const response = await client.images.generations.create({
+  prompt: 'A serene Japanese garden with cherry blossoms at sunset',
+  size: '1024x1024',
+  quality: 'standard',
+  n: 1
+});
+
+// Save the generated image
+const imageBase64 = response.data[0].base64;
+const buffer = Buffer.from(imageBase64, 'base64');
+fs.writeFileSync('./generated.png', buffer);
+
+console.log('Image saved to generated.png');
+```
+
+### High-Resolution Generation
+
+```javascript
+// Generate 4K image
+const response = await client.images.generations.create({
+  prompt: 'Futuristic cityscape at night with neon lights',
+  size: '2048x2048',
+  quality: 'hd'
+});
+```
+
+### Batch Generation
+
+```javascript
+// Generate multiple variations
+const response = await client.images.generations.create({
+  prompt: 'Modern logo design, minimalist style',
+  size: '1024x1024',
+  n: 4 // Generate 4 variations
+});
+
+response.data.forEach((img, i) => {
+  const buffer = Buffer.from(img.base64, 'base64');
+  fs.writeFileSync(`./logo_${i}.png`, buffer);
+});
+```
 
 ## Overview
 
