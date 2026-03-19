@@ -2,7 +2,7 @@
  * Step Flash 3.5 AI Agent Core
  * Main entry point for the agent framework
  * Last Updated: March 2026
- * Version: 3.1.0
+ * Version: 3.2.0 - Smart Auto-Skill Detection
  */
 
 // ============= Core Agent =============
@@ -52,6 +52,26 @@ export {
 
 // ============= Types =============
 export * from './types';
+
+// ============= Smart Interface (Ultra Simple) =============
+export * from './smart/index';
+export { SmartAgent } from './smart/SmartAgent';
+export { SkillDetector } from './smart/SkillDetector';
+export { 
+  setup, 
+  ask, 
+  askStream, 
+  execute, 
+  quickAsk,
+  listSkills,
+  addServer,
+} from './smart/SmartAgent';
+export { 
+  configManager, 
+  getStoredApiKey, 
+  saveApiKey,
+  isSetupComplete,
+} from './smart/config';
 
 // ============= Convenience Factory =============
 
@@ -129,6 +149,9 @@ export async function createVpsAgent(
 export default StepFlashAgent;
 
 // Version info
-export const VERSION = '3.1.0';
+export const VERSION = '3.2.0';
 export const AGENT_NAME = 'Step Flash Agent';
 export const MODEL_NAME = 'step-ai/step-flash-3.5';
+
+// Quick one-liner functions (from smart interface)
+export { ask as default } from './smart/SmartAgent';
