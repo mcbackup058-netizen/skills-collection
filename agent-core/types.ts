@@ -1,19 +1,30 @@
 /**
- * AI Step Flash 3.5 Agent Types
- * Type definitions for the powerful AI agent system
+ * Type Definitions for Step Flash Agent
+ * Comprehensive type definitions for the agent framework
  * Last Updated: March 2026
  */
 
-// ============= Core Types =============
+// ============= Core Agent Types =============
 
 export interface AgentConfig {
+  /** OpenRouter API key */
   apiKey: string;
+  /** Model to use */
   model?: string;
+  /** Maximum planning/execution iterations */
   maxIterations?: number;
+  /** Request timeout in milliseconds */
   timeout?: number;
+  /** Enable verbose logging */
   verbose?: boolean;
+  /** Enable memory system */
   memoryEnabled?: boolean;
+  /** Temperature for generation */
+  temperature?: number;
+  /** Tools to register */
   tools?: string[];
+  /** System prompt override */
+  systemPrompt?: string;
 }
 
 export interface Message {
@@ -67,8 +78,11 @@ export type ToolCategory =
   | 'memory' 
   | 'reasoning' 
   | 'communication'
+  | 'data'
+  | 'api'
   | 'multimedia'
-  | 'system';
+  | 'system'
+  | 'general';
 
 export interface JSONSchema {
   type: string;
@@ -102,6 +116,7 @@ export interface MemoryMetadata {
   sentiment?: 'positive' | 'negative' | 'neutral';
   conversationId?: string;
   taskId?: string;
+  importance?: number;
 }
 
 export interface ConversationContext {
@@ -225,3 +240,86 @@ export interface AgentEvent {
 }
 
 export type AgentEventHandler = (event: AgentEvent) => void | Promise<void>;
+
+// ============= Preset Types =============
+
+export interface PresetAgent {
+  name: string;
+  description: string;
+  systemPrompt: string;
+  tools: Tool[];
+  config: Partial<AgentConfig>;
+  examples: string[];
+}
+
+// ============= Config Types =============
+
+export interface AgentConfigPreset {
+  model: string;
+  maxIterations: number;
+  timeout: number;
+  temperature: number;
+  verbose: boolean;
+  memoryEnabled: boolean;
+  extendedThinking?: boolean;
+  logLevel?: string;
+}
+
+export interface TaskTemplate {
+  description: string;
+  steps: Array<{
+    name: string;
+    description: string;
+  }>;
+}
+
+// ============= Utility Types =============
+
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+export interface Logger {
+  debug(message: string, ...args: any[]): void;
+  info(message: string, ...args: any[]): void;
+  warn(message: string, ...args: any[]): void;
+  error(message: string, ...args: any[]): void;
+}
+
+// ============= Export All =============
+
+export type {
+  // Agent
+  AgentConfig,
+  Message,
+  ToolCall,
+  ToolResult,
+  Tool,
+  ToolExecutionResult,
+  ToolCategory,
+  JSONSchema,
+  // Memory
+  Memory,
+  MemoryMetadata,
+  ConversationContext,
+  Entity,
+  // Reasoning
+  Task,
+  Plan,
+  ReasoningStep,
+  // State
+  AgentState,
+  AgentStatus,
+  // Response
+  AgentResponse,
+  ResponseMetadata,
+  // Events
+  AgentEventType,
+  AgentEvent,
+  AgentEventHandler,
+  // Presets
+  PresetAgent,
+  AgentConfigPreset,
+  TaskTemplate,
+  // Utils
+  LogLevel,
+  Logger,
+};
