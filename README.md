@@ -1,11 +1,52 @@
 # 🎯 Skills Collection 2026
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.0.0-green.svg)]()
+[![Version](https://img.shields.io/badge/version-3.4.0-green.svg)]()
 [![Updated](https://img.shields.io/badge/updated-March%202026-brightgreen.svg)]()
 [![AI Step Flash](https://img.shields.io/badge/AI%20Step%20Flash-3.5-purple.svg)]()
 
 Koleksi lengkap skill AI untuk pengembangan aplikasi menggunakan z-ai-web-dev-sdk dengan dukungan **AI Step Flash 3.5** via OpenRouter. Repository ini berisi 19 modul skill yang dapat digunakan untuk membangun aplikasi AI yang powerful dengan fitur-fitur terbaru 2026.
+
+## ⚡ Quick Start - Super Simple!
+
+### 🚀 One Command Setup
+
+```bash
+# 1. Clone dan masuk ke direktori
+git clone https://github.com/mcbackup058-netizen/skills-collection.git
+cd skills-collection
+
+# 2. Setup API key (sekali saja)
+node run.js setup sk-or-v1-your-api-key
+
+# 3. Tanya apapun!
+node run.js "Apa itu Python?"
+node run.js "Cek status VPS saya"
+node run.js chat   # Interactive mode
+```
+
+### 🎯 Quick VPS Commands
+
+```bash
+node run.js status    # Cek VPS status
+node run.js docker    # List containers
+node run.js nginx     # Check Nginx
+node run.js services  # List services
+```
+
+### 💬 Interactive Chat Mode
+
+```bash
+node run.js chat
+
+# Commands di dalam chat:
+# /help    - Bantuan
+# /tools   - Daftar tools
+# /vps     - Info VPS
+# /history - Riwayat chat
+# /clear   - Hapus history
+# /exit    - Keluar
+```
 
 ## 🆕 AI Step Flash 3.5 Integration
 
@@ -230,15 +271,27 @@ console.log(result.choices[0]?.message?.content);
 
 ```
 skills-collection/
-├── config/                     # ⭐ AI Step Flash 3.5 Configuration
-│   ├── ai-step-flash.config.ts     # Config file
-│   └── ai-step-flash-adapter.ts    # SDK-compatible adapter
-├── ASR/                        # Speech-to-Text ⭐ Updated 2026
-├── TTS/                        # Text-to-Speech ⭐ Updated 2026
-├── LLM/                        # Large Language Model ⭐ Updated 2026
-├── VLM/                        # Vision Language Model ⭐ Updated 2026
-├── image-generation/           # AI Image Generation ⭐ Updated 2026
-├── video-generation/           # AI Video Generation ⭐ Updated 2026
+├── run.js                      # ⭐ Main runner - Easy CLI
+├── tools.js                    # ⭐ Real tools execution
+├── package.json                # Package configuration
+├── config/                     # AI Step Flash 3.5 Configuration
+│   ├── ai-step-flash.config.ts
+│   └── ai-step-flash-adapter.ts
+├── agent-core/                 # ⭐ Smart Agent Core
+│   ├── smart/                  # Smart interface
+│   │   ├── SmartAgent.ts       # Auto skill detection
+│   │   ├── SkillDetector.ts    # Skill detection engine
+│   │   ├── config.ts           # Persistent config
+│   │   └── cli.ts              # CLI interface
+│   ├── vps/                    # VPS management tools
+│   ├── tools/                  # Built-in tools
+│   └── memory/                 # Memory management
+├── ASR/                        # Speech-to-Text
+├── TTS/                        # Text-to-Speech
+├── LLM/                        # Large Language Model
+├── VLM/                        # Vision Language Model
+├── image-generation/           # AI Image Generation
+├── video-generation/           # AI Video Generation
 ├── video-understand/           # Video Understanding
 ├── web-search/                 # Web Search
 ├── web-reader/                 # Web Reader
@@ -248,10 +301,6 @@ skills-collection/
 ├── pptx/                       # PowerPoint
 ├── finance/                    # Finance API
 ├── fullstack-dev/              # Fullstack Development
-├── gift-evaluator/             # Gift Evaluator
-├── agent-browser/              # Browser Automation
-├── podcast-generate/           # Podcast Generator
-├── .env.example                # Environment template
 └── README.md
 ```
 
@@ -342,6 +391,20 @@ Kontribusi sangat diterima! Silakan:
 
 ## 📈 Changelog
 
+### v3.4.0 (March 2026) - Smart Agent Pro
+- ⭐ Real tool execution (VPS commands, web search)
+- 💬 Interactive chat mode with streaming
+- 📜 Conversation history with persistence
+- 🎯 Quick VPS commands (status, docker, nginx, services)
+- 🛠️ Auto skill detection and execution
+- 📦 Easy CLI with one-command setup
+
+### v3.2.0 (March 2026) - Smart Interface
+- 🤖 Auto-skill detection based on prompt
+- 🔑 One-time API key setup with persistence
+- 📱 Single command for all operations
+- 🖥️ Interactive CLI mode
+
 ### v3.0.0 (March 2026) - AI Step Flash Integration
 - ⭐ Added AI Step Flash 3.5 integration via OpenRouter
 - 📦 Added SDK-compatible adapter for seamless migration
@@ -364,4 +427,4 @@ Kontribusi sangat diterima! Silakan:
 
 **Dibuat dengan ❤️ untuk komunitas developer AI Indonesia**
 
-**Last Updated**: Maret 2026 | **Version**: 3.0.0 | **AI Step Flash**: 3.5
+**Last Updated**: Maret 2026 | **Version**: 3.4.0 | **AI Step Flash**: 3.5

@@ -1,0 +1,25 @@
+{
+  "name": "step-flash-agent",
+  "version": "3.4.0",
+  "description": "AI Agent with real tool execution - VPS management, web search, and more",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js chat",
+    "setup": "node run.js setup",
+    "status": "node run.js status",
+    "vps": "node run.js status"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "vps",
+    "ssh",
+    "openrouter",
+    "step-flash"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
